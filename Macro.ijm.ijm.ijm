@@ -1,0 +1,18 @@
+//run("Brightness/Contrast...");
+run("Enhance Contrast", "saturated=0.35");
+run("Apply LUT", "stack");
+run("Close");
+run("Remove Outliers...", "radius=5 threshold=10 which=Dark stack");
+run("Sharpen", "stack");
+run("Find Edges", "stack");
+run("Remove Outliers...");
+run("Temporal-Color Code", "lut=Thermal start=1 end=17 create");
+setOption("ScaleConversions", true);
+selectImage("MAX_colored");
+makeOval(777, 760, 118, 128);
+run("Temporal-Color Code", "lut=[3-3-2 RGB] start=1 end=17 create");
+setOption("ScaleConversions", true);
+//setTool("rectangle");
+run("Roi Defaults...");
+selectImage("MAX_colored");
+makeRectangle(817, 877, 75, 29);
