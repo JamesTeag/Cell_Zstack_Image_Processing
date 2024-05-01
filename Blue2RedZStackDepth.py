@@ -12,20 +12,23 @@ from PIL import Image, ImageFilter
 import matplotlib as mpl 
 import matplotlib.pyplot as plt 
 
+#Identifying z stack path and tmp save folder
 ZStack_path = r"C:\Image_Analysis\James\2023-08-01\Plant1_2023_08_01\Plant1_2023_08_01\Plant1_2023_08_01_MMStack_Pos01.ome.tif"
 tmp_path = r"C:\Image_Analysis\tmp"
 
+#Changes directory and identifies z stack layers dimensions
 os.chdir(tmp_path)
 image = cv2.imread(ZStack_path)
 img = io.imread(ZStack_path)
 slices, x, y  = (img.shape)
 
+#clears tmp folder for new images
 test = os.listdir(tmp_path)
 for images in test:
     if images.endswith(".jpeg"):
         os.remove(os.path.join(tmp_path, images))
 
-
+#Converts images from a 16 bit to 8 bit image and applies a gaussian blur (Optional)
 for i in range(slices):
     print (i)
     normalizedImg = np.zeros((2000, 2000))
@@ -35,6 +38,7 @@ for i in range(slices):
     image_Guas = image_Gaus.filter(ImageFilter.GaussianBlur(radius=.5))
     image_Guas.save(str(i)+'v1.jpeg')
 
+#Converts image to grayscale for canny to apply edge detection 
 for i in range(slices):
     print (i)
     normIMG = cv2.imread(str(i)+'v1.jpeg')
@@ -43,10 +47,11 @@ for i in range(slices):
     edged_image = cv2.Canny(gray_image, 150, 256)
     cv2.imwrite(str(i)+'v2.jpeg',edged_image)
 
- 
+ #Identifies which layer came first
 EdgeInitial = cv2.imread(str(0)+'v2.jpeg')
 Combine = slices
 
+#Goes through images and manually applys a color to white pixels, followed by merging these layers into one result
 for i in range(Combine):
     EdgeInitial = Image.open(str(i)+'v2.jpeg')
     img = EdgeInitial.convert("RGB")
@@ -71,6 +76,9 @@ for i in range(Combine):
     result = ImageChops.lighter(EdgeInitial, NextEdge)
     Product = result.save('result.jpeg')
 
+#I was unable to learn how to make a colormap using preset colors that could be changed based off the layers
+#The solution I came up was to find a LUT that went through the same range of colors
+#I am still having issues to combining the result image with the gradiant but am working on it
 norm = mpl.colors.Normalize(vmin=0, vmax=slices) 
 slice_1 = slices-1
 cmap = plt.get_cmap('bwr', slices-1) 
@@ -79,6 +87,7 @@ sm.set_array([])
 plt.colorbar(sm, ticks=np.linspace(0, slice_1, slices)) 
 plt.show() 
 
+#This section applies contrast to the image, allowing for better visualization
 image = cv2.imread('result.jpeg')
 alpha = 3
 beta = 0
