@@ -9,6 +9,8 @@ from skimage import (exposure, feature, filters, io, measure,
                       morphology, restoration, segmentation, transform, util)
 import plotly.express as px
 from PIL import Image, ImageFilter
+import matplotlib as mpl 
+import matplotlib.pyplot as plt 
 
 ZStack_path = r"C:\Image_Analysis\James\2023-08-01\Plant1_2023_08_01\Plant1_2023_08_01\Plant1_2023_08_01_MMStack_Pos01.ome.tif"
 tmp_path = r"C:\Image_Analysis\tmp"
@@ -30,7 +32,7 @@ for i in range(slices):
     normalizedImg = cv2.normalize(img[i,:,:],  normalizedImg, 0, 255, cv2.NORM_MINMAX)
     cv2.imwrite(str(i)+'v1.jpeg',normalizedImg)
     image_Gaus = Image.open(str(i)+'v1.jpeg') 
-    image_Guas = image_Gaus.filter(ImageFilter.GaussianBlur(radius=.0))
+    image_Guas = image_Gaus.filter(ImageFilter.GaussianBlur(radius=.5))
     image_Guas.save(str(i)+'v1.jpeg')
 
 for i in range(slices):
@@ -38,7 +40,7 @@ for i in range(slices):
     normIMG = cv2.imread(str(i)+'v1.jpeg')
     loaded_image = cv2.cvtColor(normIMG,cv2.COLOR_BGR2RGB)
     gray_image = cv2.cvtColor(loaded_image,cv2.COLOR_BGR2GRAY)
-    edged_image = cv2.Canny(gray_image, 100, 256)
+    edged_image = cv2.Canny(gray_image, 150, 256)
     cv2.imwrite(str(i)+'v2.jpeg',edged_image)
 
  
@@ -52,7 +54,7 @@ for i in range(Combine):
     new_image = []
     for item in d:
         if item[0] in list(range(20, 256)):
-            red = 0 + ((255/Combine) * i)
+            red = -255 + ((255/Combine) * i)
             blue = 255 - (255/Combine) * i
             new_image.append((int(red), 0, int(blue)))
         else:
@@ -69,5 +71,19 @@ for i in range(Combine):
     result = ImageChops.lighter(EdgeInitial, NextEdge)
     Product = result.save('result.jpeg')
 
+norm = mpl.colors.Normalize(vmin=0, vmax=slices) 
+slice_1 = slices-1
+cmap = plt.get_cmap('bwr', slices-1) 
+sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm) 
+sm.set_array([]) 
+plt.colorbar(sm, ticks=np.linspace(0, slice_1, slices)) 
+plt.show() 
+
+image = cv2.imread('result.jpeg')
+alpha = 3
+beta = 0
+
+adjusted = cv2.convertScaleAbs(image, alpha=alpha, beta=beta)
+cv2.imwrite('result.jpeg',adjusted)
 
 
